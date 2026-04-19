@@ -22,7 +22,9 @@ RUN pip install --no-cache-dir ruff bandit semgrep
 
 # ── Application ───────────────────────────────────────────────────────────────
 WORKDIR /app
-COPY pyproject.toml README.md ./
+COPY pyproject.toml ./
+# README.md is optional (referenced by pyproject.toml) — copy only if present
+COPY README.m[d] ./
 COPY src/ ./src/
 COPY config/ ./config/
 

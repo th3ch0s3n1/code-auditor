@@ -14,7 +14,6 @@ reports/
 *.log
 *.tmp
 __docs/
-README.md
 tests/
 .pytest_cache
 .mypy_cache
