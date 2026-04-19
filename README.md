@@ -40,7 +40,7 @@ audit scan . --frontend
 audit scan . --since-commit main
 
 # Start the FastAPI server
-audit serve --port 8000
+audit serve --port 8888
 ```
 
 ## Output formats

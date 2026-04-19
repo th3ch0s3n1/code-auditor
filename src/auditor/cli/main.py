@@ -110,7 +110,7 @@ def scan(
 @app.command()
 def serve(
     host: str = typer.Option("0.0.0.0", "--host", help="Bind host."),
-    port: int = typer.Option(8000, "--port", "-p", help="Bind port."),
+    port: int = typer.Option(8888, "--port", "-p", help="Bind port."),
     reload: bool = typer.Option(False, "--reload", help="Auto-reload on file changes."),
 ) -> None:
     """Start the FastAPI scan server."""

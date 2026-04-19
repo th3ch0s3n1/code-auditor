@@ -15,15 +15,15 @@ services:
       --format html
       --output /reports/report.html
     ports:
-      - "8000:8000"
+      - "8888:8888"
 
   # Run the API server
   api:
     build: .
     image: code-auditor:latest
-    command: serve --host 0.0.0.0 --port 8000
+    command: serve --host 0.0.0.0 --port 8888
     ports:
-      - "8000:8000"
+      - "8888:8888"
     volumes:
       - "${TARGET_PATH:-.}:/target:ro"
     profiles:

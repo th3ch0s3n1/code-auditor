@@ -72,9 +72,11 @@ class NpmAuditParser:
                 elif fix is True:
                     suggestion = "Run `npm audit fix` to apply the available fix."
 
+                source = advisory.get("source")
+                rule_id = f"npm:{source}" if source is not None else f"npm:{pkg_name}"
                 findings.append(RawFinding(
                     file=f"package.json#{pkg_name}",
-                    rule_id=advisory.get("source", f"npm:{pkg_name}") or f"npm:{pkg_name}",
+                    rule_id=rule_id,
                     message=title,
                     tool="npm-audit",
                     engine="dependency",

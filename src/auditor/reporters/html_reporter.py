@@ -48,6 +48,9 @@ tr:hover td {{ background: #1c2129; }}
 .suggestion {{ font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }}
 .empty {{ text-align: center; padding: 3rem; color: var(--muted); }}
 #count {{ color: var(--muted); font-size: 0.85rem; }}
+button.btn {{ background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.875rem; cursor: pointer; white-space: nowrap; }}
+button.btn:hover {{ border-color: #58a6ff; color: #58a6ff; }}
+button.btn.copied {{ border-color: #3fb950; color: #3fb950; }}
 </style>
 </head>
 <body>
@@ -92,6 +95,7 @@ tr:hover td {{ background: #1c2129; }}
   </select>
   <input id="search" type="search" placeholder="Search message / file / rule…" oninput="applyFilters()">
   <span id="count"></span>
+  <button class="btn" id="copyMdBtn" onclick="copyMarkdown()">Copy as Markdown</button>
 </div>
 
 <table id="issueTable">
@@ -170,6 +174,65 @@ function sortBy(col){{
   applyFilters();
 }}
 applyFilters();
+
+function copyMarkdown(){{
+  const sev=document.getElementById('sevFilter').value;
+  const cat=document.getElementById('catFilter').value;
+  const tool=document.getElementById('toolFilter').value;
+  const q=document.getElementById('search').value.toLowerCase();
+  let filtered=DATA.filter(i=>
+    (!sev||i.severity===sev)&&
+    (!cat||i.category===cat)&&
+    (!tool||i.tool===tool)&&
+    (!q||(i.message+i.file+i.rule_id).toLowerCase().includes(q))
+  );
+  filtered=sortIssues(filtered);
+
+  const meta=`# Code Audit Report\n\n` +
+    `**Scan:** {scan_id}  \n` +
+    `**Target:** {target_path}  \n` +
+    `**Project types:** {project_types}  \n` +
+    `**Files scanned:** {files_scanned} | **Duration:** {duration}s  \n\n` +
+    `## Summary\n\n` +
+    `| Critical | High | Medium | Low | Info | Total |\n` +
+    `|----------|------|--------|-----|------|-------|\n` +
+    `| {critical} | {high} | {medium} | {low} | {info} | {total} |\n\n`;
+
+  const header=`## Issues (${{filtered.length}} shown)\n\n` +
+    `| # | Severity | File | Line | Tool | Rule | Message | Risk |\n` +
+    `|---|----------|------|------|------|------|---------|------|\n`;
+
+  const rows=filtered.map((i,idx)=>{{
+    const file=i.file.replace(/\|/g,'\\|');
+    const msg=i.message.replace(/\|/g,'\\|').replace(/\\n/g,' ');
+    const rule=i.rule_id.replace(/\|/g,'\\|');
+    return `| ${{idx+1}} | ${{i.severity.toUpperCase()}} | ${{file}} | ${{i.line||'—'}} | ${{i.tool}} | ${{rule}} | ${{msg}} | ${{i.risk_score}} |`;
+  }}).join('\\n');
+
+  const details=filtered.map((i,idx)=>{{
+    let block=`### ${{idx+1}}. ${{i.severity.toUpperCase()}} — ${{i.rule_id}}\n\n` +
+      `**File:** \`${{i.file}}\`  \n` +
+      `**Line:** ${{i.line||'N/A'}} | **Tool:** ${{i.tool}} | **Category:** ${{i.category}} | **Risk score:** ${{i.risk_score}}  \n` +
+      `**Message:** ${{i.message}}`;
+    if(i.suggestion) block+=`  \n**Suggestion:** ${{i.suggestion}}`;
+    if(i.code_snippet) block+=`\n\n\`\`\`\n${{i.code_snippet}}\n\`\`\``;
+    return block;
+  }}).join('\\n\\n---\\n\\n');
+
+  const md=meta+header+rows+`\n\n## Details\n\n`+details;
+
+  navigator.clipboard.writeText(md).then(()=>{{
+    const btn=document.getElementById('copyMdBtn');
+    btn.textContent='Copied!';
+    btn.classList.add('copied');
+    setTimeout(()=>{{btn.textContent='Copy as Markdown';btn.classList.remove('copied');}},2000);
+  }}).catch(()=>{{
+    const ta=document.createElement('textarea');
+    ta.value=md;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+  }});
+}}
 </script>
 </body>
 </html>
@@ -198,7 +261,7 @@ def render(result: ScanResult, path: Path | None = None) -> str:
         data_json=json.dumps(
             [i.model_dump(mode="json") for i in result.issues],
             ensure_ascii=False,
-        ),
+        ).replace("</", "<\\/"),  # prevent </script> from breaking the HTML parser
     )
 
     if path:

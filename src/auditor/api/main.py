@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi_mcp import FastApiMCP
 
 from .routes import scan as scan_router, reports as reports_router
 
@@ -22,6 +23,11 @@ def create_app() -> FastAPI:
     )
     application.include_router(scan_router.router, prefix="/scan", tags=["scan"])
     application.include_router(reports_router.router, prefix="/reports", tags=["reports"])
+
+    # Expose all routes as MCP tools — VS Code Copilot connects via /mcp (SSE)
+    mcp = FastApiMCP(application)
+    mcp.mount()
+
     return application
 
 
