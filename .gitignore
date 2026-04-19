@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+wheels/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Hatch / pip
+.hatch/
+pip-wheel-metadata/
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Ruff / linting cache
+.ruff_cache/
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+
+# Environment variables — contains local paths, never commit
+.env
+.env.*
+!.env.example
+
+# Local scan target lists — contain machine-specific paths
+targets.txt
+!targets.txt.example
+
+# Reports output
+reports/
+
+# Node / npm (for ESLint / npm audit)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml

@@ -1,0 +1,23 @@
+stages:
+  - audit
+
+code-audit:
+  stage: audit
+  image: python:3.12-slim
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl git nodejs npm
+    - npm install -g eslint eslint-plugin-react eslint-plugin-security
+    - pip install ruff bandit semgrep
+    - pip install "code-auditor @ git+https://github.com/your-org/code-auditor.git"
+  script:
+    - >
+      audit scan .
+      --format json
+      --output audit-report.json
+      --fail-on high
+  artifacts:
+    when: always
+    paths:
+      - audit-report.json
+    expire_in: 30 days
+  allow_failure: false

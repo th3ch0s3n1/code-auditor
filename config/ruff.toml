@@ -1,0 +1,32 @@
+# Ruff configuration used by the auditor when scanning target projects.
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = [
+  "E",    # pycodestyle errors
+  "F",    # pyflakes
+  "W",    # pycodestyle warnings
+  "B",    # flake8-bugbear
+  "C90",  # mccabe complexity
+  "S",    # flake8-bandit (security)
+  "N",    # pep8-naming
+  "UP",   # pyupgrade
+  "ANN",  # flake8-annotations
+  "ARG",  # flake8-unused-arguments
+  "PL",   # pylint
+  "RUF",  # ruff-specific
+]
+ignore = [
+  "ANN101", # missing type annotation for `self`
+  "ANN102", # missing type annotation for `cls`
+  "ANN401", # dynamically typed expressions (Any)
+  "E501",   # line too long (handled separately)
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["S101", "ANN", "ARG"]
+"migrations/**" = ["N999", "E501"]
+
+[lint.mccabe]
+max-complexity = 10

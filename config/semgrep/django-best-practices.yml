@@ -1,0 +1,81 @@
+rules:
+  - id: django-missing-select-related
+    patterns:
+      - pattern: |
+          for $OBJ in $QUERYSET:
+              ... $OBJ.$RELATED. ...
+      - pattern-not: |
+          for $OBJ in $QUERYSET.select_related(...):
+              ...
+      - pattern-not: |
+          for $OBJ in $QUERYSET.prefetch_related(...):
+              ...
+    message: >
+      Possible N+1 query: iterating a queryset and accessing a related field without
+      select_related() or prefetch_related().
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: performance
+      tags: [n-plus-1, performance, django]
+
+  - id: django-object-get-without-try
+    patterns:
+      - pattern: $VAR = $MODEL.objects.get(...)
+      - pattern-not-inside: |
+          try:
+              ...
+          except ...:
+              ...
+    message: >
+      Model.objects.get() raises DoesNotExist if the object is missing.
+      Wrap in a try/except or use .filter().first() instead.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: correctness
+      tags: [django, correctness]
+
+  - id: django-model-str-missing
+    patterns:
+      - pattern: |
+          class $MODEL(models.Model):
+              ...
+      - pattern-not: |
+          class $MODEL(models.Model):
+              ...
+              def __str__(self):
+                  ...
+    message: >
+      Django model is missing a __str__ method, which makes the admin and shell less useful.
+    severity: INFO
+    languages: [python]
+    metadata:
+      category: maintainability
+      tags: [django, maintainability]
+
+  - id: django-null-blank-charfield
+    pattern: models.CharField(..., null=True, ...)
+    message: >
+      Avoid null=True on CharField/TextField — Django convention is to store empty strings,
+      not NULL, for string-based fields. Use blank=True instead.
+    severity: INFO
+    languages: [python]
+    metadata:
+      category: correctness
+      tags: [django, correctness]
+
+  - id: django-use-get-object-or-404
+    patterns:
+      - pattern: |
+          try:
+              $VAR = $MODEL.objects.get(...)
+          except $MODEL.DoesNotExist:
+              return HttpResponse(..., status=404)
+    message: >
+      Simplify with get_object_or_404($MODEL, ...) from django.shortcuts.
+    severity: INFO
+    languages: [python]
+    metadata:
+      category: maintainability
+      tags: [django, maintainability]

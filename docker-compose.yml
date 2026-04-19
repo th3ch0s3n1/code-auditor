@@ -1,0 +1,30 @@
+services:
+  auditor:
+    build: .
+    image: code-auditor:latest
+    volumes:
+      # Mount a target project directory for scanning
+      - "${TARGET_PATH:-.}:/target:ro"
+      # Optional: persist scan results
+      - "${REPORTS_PATH:-./reports}:/reports"
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Default: run a scan against /target and write a JSON + HTML report
+    command: >
+      scan /target
+      --format html
+      --output /reports/report.html
+    ports:
+      - "8000:8000"
+
+  # Run the API server
+  api:
+    build: .
+    image: code-auditor:latest
+    command: serve --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - "${TARGET_PATH:-.}:/target:ro"
+    profiles:
+      - api

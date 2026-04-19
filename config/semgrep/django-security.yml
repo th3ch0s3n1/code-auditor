@@ -1,0 +1,102 @@
+rules:
+  - id: django-raw-sql-cursor-execute
+    patterns:
+      - pattern-either:
+          - pattern: $CURSOR.execute($QUERY % ...)
+          - pattern: $CURSOR.execute(f"..." )
+          - pattern: $CURSOR.execute("..." + ...)
+    message: >
+      SQL injection risk: user-controlled data interpolated into cursor.execute().
+      Use parameterised queries: cursor.execute("SELECT ... WHERE id = %s", [user_id])
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: security
+      cwe: CWE-89
+      tags: [sql-injection, security]
+
+  - id: django-raw-queryset
+    pattern: $MODEL.objects.raw($QUERY % ...)
+    message: >
+      SQL injection via QuerySet.raw() with string formatting.
+      Pass parameters as the second argument: Model.objects.raw(sql, [param])
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: security
+      cwe: CWE-89
+      tags: [sql-injection, security]
+
+  - id: django-extra-sql-injection
+    pattern: $QUERYSET.extra(where=[$QUERY % ...])
+    message: >
+      SQL injection via QuerySet.extra(where=...) with string formatting.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: security
+      cwe: CWE-89
+      tags: [sql-injection, security]
+
+  - id: django-secret-key-hardcoded
+    patterns:
+      - pattern: SECRET_KEY = "..."
+      - pattern-not: SECRET_KEY = os.environ[...]
+      - pattern-not: SECRET_KEY = os.getenv(...)
+      - pattern-not: SECRET_KEY = config(...)
+      - pattern-not: SECRET_KEY = env(...)
+    message: >
+      Hardcoded SECRET_KEY detected. Load it from an environment variable.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: security
+      cwe: CWE-321
+      tags: [hardcoded-secret, security]
+
+  - id: django-debug-true
+    pattern: DEBUG = True
+    message: >
+      DEBUG=True must never be used in production. Load from an environment variable.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: security
+      cwe: CWE-94
+      tags: [debug, security]
+
+  - id: django-allowed-hosts-wildcard
+    pattern: ALLOWED_HOSTS = ["*"]
+    message: >
+      ALLOWED_HOSTS = ["*"] allows any hostname — restrict to your domain in production.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: security
+      tags: [allowed-hosts, security]
+
+  - id: django-csrf-exempt
+    pattern: |
+      @csrf_exempt
+      def $FUNC(...):
+          ...
+    message: >
+      @csrf_exempt disables CSRF protection on this view.
+      Ensure the endpoint is either stateless (token auth) or protected by another mechanism.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: security
+      cwe: CWE-352
+      tags: [csrf, security]
+
+  - id: django-user-is-authenticated-old
+    pattern: $USER.is_authenticated()
+    message: >
+      request.user.is_authenticated is a property in Django 1.10+, not a method.
+      Remove the parentheses: if request.user.is_authenticated:
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: correctness
+      tags: [django, correctness]
